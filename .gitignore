@@ -1,0 +1,6 @@
+/target
+**/*.rs.bk
+.idea
+out.txt
+Cargo.lock
+!Cargo.toml
