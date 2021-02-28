@@ -1,4 +1,6 @@
-
+use std::io::{BufReader, BufRead};
+use std::fs::File;
+use crate::{CONST_REGEX_START, CONST_REGEX_ROW, CONST_REGEX_END};
 
 pub fn gen_model(lang: &str, in_file: os::File, out_file: os::File) {
     let buffered: BufReader<File> = BufReader::new(in_file);
