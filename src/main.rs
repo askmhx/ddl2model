@@ -43,7 +43,7 @@ fn main() {
 
     let in_file = File::open(in_path).unwrap();
 
-    let mut out_file = File::create(out_path).expect("create output file failed");
+    let out_file = File::create(out_path).expect("create output file failed");
 
     ddl::gen_model(lang.as_str(), in_file, out_file)
 }
