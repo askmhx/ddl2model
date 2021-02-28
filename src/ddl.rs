@@ -35,11 +35,14 @@ pub fn gen_model(lang: &str, in_file: File, mut out_file: File) {
     let buffered: BufReader<File> = BufReader::new(in_file);
 
     for line in buffered.lines().map(|x| x.unwrap()) {
-        println!("{}", line);
+        // println!("{}", line);
 
         if regex_start.is_match(line.as_str()) {
             println!("match title:{}", line);
             let title = &(regex_start.captures(&line).unwrap())["title"];
+
+            // template_start[lang]
+
             out_file.write_all(title.as_bytes());
             out_file.write_all(b"\n");
         }
