@@ -1,8 +1,8 @@
-use std::io::{BufReader, BufRead};
+use std::io::{BufReader, BufRead, Write};
 use std::fs::File;
 use crate::{CONST_REGEX_START, CONST_REGEX_ROW, CONST_REGEX_END};
 
-pub fn gen_model(lang: &str, in_file: os::File, out_file: os::File) {
+pub fn gen_model(lang: &str, in_file: File, mut out_file: File) {
     let buffered: BufReader<File> = BufReader::new(in_file);
 
     for line in buffered.lines().map(|x| x.unwrap()) {
