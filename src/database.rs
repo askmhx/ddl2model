@@ -30,16 +30,15 @@ pub fn gen_model_from_database(db_url: &str) -> Vec<Table> {
 
     for table_name in result {
         let mut table = Table();
+
         table.name = table_name;
 
-        let mut fields: Vec<Field> = Vec::new();
-
-        let sql_show_table = format!("SHOW FULL COLUMNS FROM {};", table_name);
-
         let mut table_conn = pool.get_conn().unwrap();
-        table_conn.query_map(sql_show_table, |(field, ftype, fcollection, fnull, fkey, fdefault, fextra, fprivilages, fcomment)| {
-            fields.push(Field(field, ftype, fcollection, fnull, fkey, fdefault, fextra, fprivilages, fcomment))
+
+        let mut fields: Vec<Field> = table_conn.query_map(format!("SHOW FULL COLUMNS FROM {};", table_name), |(field, ftype, fcollection, fnull, fkey, fdefault, fextra, fprivilages, fcomment)| {
+            Field(field, ftype, fcollection, fnull, fkey, fdefault, fextra, fprivilages, fcomment)
         }).unwrap();
+
         table.fields = fields;
 
         tables.borrow().push(table);
