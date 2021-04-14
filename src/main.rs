@@ -39,7 +39,8 @@ macro_rules! table_end_format {
 
 fn main() {
 
-    let lang = std::env::args().nth(1).expect("Missing lang").to_uppercase().as_str();
+    let lang_in = std::env::args().nth(1).expect("Missing lang").to_uppercase();
+    let lang = lang_in.trim();
 
     let out_path = std::env::args().nth(2).expect("Missing out file path");
 

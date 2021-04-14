@@ -1,6 +1,5 @@
 use mysql::Pool;
 use mysql::prelude::Queryable;
-use std::borrow::Borrow;
 
 pub struct Table {
     pub name: String,
@@ -30,7 +29,7 @@ pub fn gen_model_from_database(db_url: &str) -> Vec<Table> {
 
     for table_name in result {
 
-        let mut table = Table{name:table_name,fields:vec!()};
+        let mut table = Table{name:table_name.clone(),fields:vec!()};
 
         let mut table_conn = pool.get_conn().unwrap();
 
