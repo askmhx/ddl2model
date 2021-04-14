@@ -14,6 +14,7 @@ macro_rules! table_title_format {
             "GO" => format!("type struct {} \x08",$args),
             "JAVA" => format!("public class {} \x08",$args),
             "RUST" => format!("pub struct {} \x08",$args),
+            _ => format!("pub struct {} \x08",$args),
         }
     }}
 }
@@ -24,6 +25,7 @@ macro_rules! table_row_format {
             "GO" => format!("{} {}",$args0,$args1),
             "JAVA" => format!("{} {};",$args0,$args1),
             "RUST" => format!("{}:{},",$args0,$args1),
+            _ => format!("{}:{},",$args0,$args1),
         }
     }}
 }
@@ -37,13 +39,13 @@ macro_rules! table_end_format {
 
 fn main() {
 
-    let lang = std::env::args().nth(1).expect("lang").to_uppercase();
+    let lang = std::env::args().nth(1).expect("Missing lang").to_uppercase().as_str();
 
     let out_path = std::env::args().nth(2).expect("Missing out file path");
 
     let db_url = std::env::args().nth(3).expect("Missing DB URL root:password@host:port");
 
-    let db_dbs = std::env::args().nth(4).expect("Missing dB SCHEMA AA|BB|CC");
+    let db_dbs = std::env::args().nth(4).expect("Missing DB SCHEMA AA|BB|CC");
 
     let mut out_file = File::create(out_path).expect("create output file failed");
 
