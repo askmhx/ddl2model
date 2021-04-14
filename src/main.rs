@@ -68,6 +68,7 @@ fn main() {
         }
         out_file.write(table_end_format!(lang).as_bytes());
     }
+    out_file.flush();
 }
 
 
