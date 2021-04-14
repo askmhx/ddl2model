@@ -4,7 +4,7 @@ use std::borrow::Borrow;
 
 pub struct Table {
     pub name: String,
-    pub fields: Ver<Field>,
+    pub fields: Vec<Field>,
 }
 
 pub struct Field {
@@ -20,7 +20,7 @@ pub struct Field {
 }
 
 pub fn gen_model_from_database(db_url: &str) -> Vec<Table> {
-    let tables: Vec<Table> = Vec::new();
+    let mut tables: Vec<Table> = vec!();
 
     let pool = Pool::new(db_url).unwrap();
 
@@ -29,19 +29,18 @@ pub fn gen_model_from_database(db_url: &str) -> Vec<Table> {
     let result: Vec<String> = conn.query("SHOW TABLES").unwrap();
 
     for table_name in result {
-        let mut table = Table();
 
-        table.name = table_name;
+        let mut table = Table{name:table_name,fields:vec!()};
 
         let mut table_conn = pool.get_conn().unwrap();
 
-        let mut fields: Vec<Field> = table_conn.query_map(format!("SHOW FULL COLUMNS FROM {};", table_name), |(field, ftype, fcollection, fnull, fkey, fdefault, fextra, fprivilages, fcomment)| {
-            Field(field, ftype, fcollection, fnull, fkey, fdefault, fextra, fprivilages, fcomment)
+        let mut ret_fields: Vec<Field> = table_conn.query_map(format!("SHOW FULL COLUMNS FROM {};", table_name), |(field, ftype, fcollection, fnull, fkey, fdefault, fextra, fprivilages, fcomment)| {
+            Field{fname:field, ftype:ftype,fcollection: fcollection,fnull: fnull, fkey:fkey,fdefault: fdefault,fextra: fextra,fprivilages: fprivilages,fcomment: fcomment}
         }).unwrap();
 
-        table.fields = fields;
+        table.fields.append(&mut ret_fields);
 
-        tables.borrow().push(table);
+        tables.push(table);
     }
 
     return tables;

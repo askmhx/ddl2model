@@ -6,29 +6,36 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::borrow::{Borrow, BorrowMut};
 use crate::database::Table;
+use std::fmt;
 
-const CONST_LANG_GO: &str = "GO";
-const CONST_LANG_JAVA: &str = "JAVA";
-const CONST_LANG_RUST: &str = "RUST";
+macro_rules! table_title_format {
+    ($lang:expr,$args:expr) => {{
+        match $lang {
+            "GO" => format!("type struct {} \x08",$args),
+            "JAVA" => format!("public class {} \x08",$args),
+            "RUST" => format!("pub struct {} \x08",$args),
+        }
+    }}
+}
 
-const CONST_TEMPLATE_STAT: HashMap<&str, &str> = HashMap::new();
-const CONST_TEMPLATE_END: HashMap<&str, &str> = HashMap::new();
-const CONST_TEMPLATE_ROW: HashMap<&str, &str> = HashMap::new();
+macro_rules! table_row_format {
+    ($lang:expr,$args0:expr,$args1:expr) => {{
+        match $lang {
+            "GO" => format!("{} {}",$args0,$args1),
+            "JAVA" => format!("{} {};",$args0,$args1),
+            "RUST" => format!("{}:{},",$args0,$args1),
+        }
+    }}
+}
+
+macro_rules! table_end_format {
+    ($lang:expr) => {{
+        "}"
+    }}
+}
 
 
 fn main() {
-    CONST_TEMPLATE_STAT.insert(CONST_LANG_GO, "type struct {} {");
-    CONST_TEMPLATE_STAT.insert(CONST_LANG_JAVA, "public class {} {");
-    CONST_TEMPLATE_STAT.insert(CONST_LANG_RUST, "pub struct {} {");
-
-    CONST_TEMPLATE_ROW.insert(CONST_LANG_GO, "{} {}");
-    CONST_TEMPLATE_ROW.insert(CONST_LANG_JAVA, "{} {};");
-    CONST_TEMPLATE_ROW.insert(CONST_LANG_RUST, "{}:{},");
-
-
-    CONST_TEMPLATE_END.insert(CONST_LANG_GO, "}");
-    CONST_TEMPLATE_END.insert(CONST_LANG_JAVA, "}");
-    CONST_TEMPLATE_END.insert(CONST_LANG_RUST, "}");
 
     let lang = std::env::args().nth(1).expect("lang").to_uppercase();
 
@@ -40,7 +47,7 @@ fn main() {
 
     let mut out_file = File::create(out_path).expect("create output file failed");
 
-    let mut tables: Vec<Table> = Vec::new();
+    let mut tables: Vec<Table> = vec!();
 
     for db in db_dbs.split("|") {
         let mut ret = database::gen_model_from_database(format!("mysql://{}/{}", db_url, db).as_str());
@@ -48,15 +55,15 @@ fn main() {
     }
 
     for table in tables {
-        let table_title = format!(CONST_TEMPLATE_STAT.get(lang.borrow()), table.name);
+        let table_title = table_title_format!(lang, table.name);
 
         out_file.write(table_title.as_bytes());
 
         for field in table.fields {
-            let table_row = format!(CONST_TEMPLATE_ROW.get(lang.borrow()), field.fname, field.ftype);
+            let table_row = table_row_format!(lang, field.fname, field.ftype);
             out_file.write(table_row.as_bytes());
         }
-        out_file.write(CONST_TEMPLATE_END.get(lang.borrow()).as_bytes());
+        out_file.write(table_end_format!(lang).as_bytes());
     }
 }
 
