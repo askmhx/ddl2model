@@ -1,12 +1,10 @@
-mod database;
-
-use std::io::{BufReader, BufRead, Write, Read};
+use std::borrow::BorrowMut;
 use std::fs::File;
-use regex::Regex;
-use std::collections::HashMap;
-use std::borrow::{Borrow, BorrowMut};
+use std::io::Write;
+
 use crate::database::Table;
-use std::fmt;
+
+mod database;
 
 macro_rules! table_title_format {
     ($lang:expr,$args:expr) => {{
@@ -60,15 +58,15 @@ fn main() {
     for table in tables {
         let table_title = table_title_format!(lang, table.name);
 
-        out_file.write(table_title.as_bytes());
+        let _ = out_file.write(table_title.as_bytes());
 
         for field in table.fields {
             let table_row = table_row_format!(lang, field.fname, field.ftype);
-            out_file.write(table_row.as_bytes());
+            let _ = out_file.write(table_row.as_bytes());
         }
-        out_file.write(table_end_format!(lang).as_bytes());
+        let _ = out_file.write(table_end_format!(lang).as_bytes());
     }
-    out_file.flush();
+    let _ = out_file.flush();
 }
 
 
