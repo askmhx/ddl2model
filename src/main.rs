@@ -1,6 +1,6 @@
 use std::borrow::{BorrowMut, Cow};
 use std::fs::File;
-use std::io::{Write, LineWriter};
+use std::io::{Write};
 
 use crate::database::Table;
 
