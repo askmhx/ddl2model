@@ -32,9 +32,9 @@ macro_rules! table_filename_format {
 macro_rules! table_row_format {
     ($lang:expr,$args0:expr,$args1:expr) => {{
         match $lang {
-            "GO" => format!("{} {}",to_camel_case($args1,true),$args1),
-            "JAVA" => format!("{} {};",to_camel_case($args0,false),$args1),
-            "RUST" => format!("{}:{},",to_lower_case($args0),$args1),
+            "GO" => format!("{} {}",to_camel_case($args1,true),convert_type($lang,$args1)),
+            "JAVA" => format!("{} {};",convert_type($lang,$args0),to_camel_case($args1,false)),
+            "RUST" => format!("{}:{},",to_lower_case($args0),convert_type($lang,$args1)),
             _ => format!("{}:{},",$args0,$args1),
         }
     }}
@@ -73,6 +73,42 @@ fn upper_first_char<'a>(input: String) -> Cow<'a, str> {
 
 fn to_lower_case(input: String) -> String {
     input.to_lowercase()
+}
+
+fn convert_type<'a>(lang:&str, input:String) -> &'a str {
+    let mut ret:&str;
+    if  input.starts_with("varchar")||input.starts_with("char"){
+        ret = match lang {
+            "GO" =>   "string"
+            "RUST" =>   "String"
+            "JAVA" =>    "String"
+            _ =>   "String"
+        }
+    }else if input.starts_with("timestamp"){
+        ret = match lang {
+            "GO" => "time"
+            "RUST" => "string"
+            "JAVA" => "string"
+            _ => "string"
+        }
+    }else if input.starts_with("int")  {
+        ret = match lang {
+            "GO" => "int"
+            "RUST" => "string"
+            "JAVA" =>  "string"
+            _ => "string"
+        }
+    } else if input.starts_with("decimal") {
+        ret = match lang {
+            "GO" => "decimal"
+            "RUST" => "string"
+            "JAVA" => "BigDecimal"
+            _ => "string"
+        };
+    }else{
+        ret = input.as_str()
+    }
+    ret
 }
 
 
