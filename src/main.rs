@@ -79,34 +79,34 @@ fn convert_type<'a>(lang:&str, input:String) -> &'a str {
     let mut ret:&str;
     if  input.starts_with("varchar")||input.starts_with("char"){
         ret = match lang {
-            "GO" =>   "string"
-            "RUST" =>   "String"
-            "JAVA" =>    "String"
+            "GO" =>   "string",
+            "RUST" =>   "String",
+            "JAVA" =>    "String",
             _ =>   "String"
         }
     }else if input.starts_with("timestamp"){
         ret = match lang {
-            "GO" => "time"
-            "RUST" => "string"
-            "JAVA" => "string"
+            "GO" => "time",
+            "RUST" => "string",
+            "JAVA" => "string",
             _ => "string"
         }
     }else if input.starts_with("int")  {
         ret = match lang {
-            "GO" => "int"
-            "RUST" => "string"
-            "JAVA" =>  "string"
+            "GO" => "int",
+            "RUST" => "int",
+            "JAVA" =>  "Int",
             _ => "string"
         }
     } else if input.starts_with("decimal") {
         ret = match lang {
-            "GO" => "decimal"
-            "RUST" => "string"
-            "JAVA" => "BigDecimal"
+            "GO" => "float64",
+            "RUST" => "i64",
+            "JAVA" => "BigDecimal",
             _ => "string"
         };
     }else{
-        ret = input.as_str()
+        ret = input.clone().as_str()
     }
     ret
 }
