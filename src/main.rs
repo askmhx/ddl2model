@@ -1,4 +1,4 @@
-use std::borrow::BorrowMut;
+use std::borrow::{BorrowMut, Cow};
 use std::fs::File;
 use std::io::Write;
 
@@ -9,37 +9,36 @@ mod database;
 macro_rules! table_title_format {
     ($lang:expr,$args:expr) => {{
         match $lang {
-            "GO" => format!("type struct {}",$args),
-            "JAVA" => format!("public class {}",$args),
-            "RUST" => format!("pub struct {}",$args),
-            _ => format!("pub struct {}",$args),
+            "GO" => format!("type struct {} {{",to_camel_case($args,true)),
+            "JAVA" => format!("public class {} {{",to_camel_case($args,true)),
+            "RUST" => format!("pub struct {} {{",to_camel_case($args,true)),
+            _ => format!("pub struct {} {{",$args),
         }
     }}
 }
 
-macro_rules! table_row_type {
-    ($lang:expr,$args0:expr) => {{
+macro_rules! table_filename_format {
+    ($lang:expr,$args:expr) => {{
         match $lang {
-            "GO" => format!("{} {}",$args0,$args1),
-            "JAVA" => format!("{} {};",$args0,$args1),
-            "RUST" => format!("{}:{},",$args0,$args1),
-            _ => format!("{}:{},",$args0,$args1),
+            "GO" => format!("{}.go",to_camel_case($args,true)),
+            "JAVA" => format!("{}.java",to_camel_case($args,true)),
+            "RUST" => format!("{}.rs",to_lower_case($args)),
+            _ => format!("{}.java",to_camel_case($args,true)),
         }
     }}
 }
+
 
 macro_rules! table_row_format {
     ($lang:expr,$args0:expr,$args1:expr) => {{
         match $lang {
-            "GO" => format!("{} {}",$args0,table_row_type!($lang,$args1)),
-            "JAVA" => format!("{} {};",$args0,$args1),
-            "RUST" => format!("{}:{},",$args0,$args1),
+            "GO" => format!("{} {}",to_camel_case($args1,true),$args1),
+            "JAVA" => format!("{} {};",to_camel_case($args0,false),$args1),
+            "RUST" => format!("{}:{},",to_lower_case($args0),$args1),
             _ => format!("{}:{},",$args0,$args1),
         }
     }}
 }
-
-
 
 macro_rules! table_end_format {
     ($lang:expr) => {{
@@ -47,9 +46,37 @@ macro_rules! table_end_format {
     }}
 }
 
+fn to_camel_case(input: String, start_with_upper: bool) -> String {
+    let arrays: Vec<&str> = input.split("_").collect();
+    let mut result = String::with_capacity(input.len());
+    for (index, value) in arrays.iter().enumerate() {
+        if index == 0 && !start_with_upper {
+            result.push_str(value.to_lowercase().as_str())
+        } else {
+            result.push_str(upper_first_char(value.to_lowercase()).trim())
+        }
+    }
+    result
+}
+
+fn upper_first_char<'a>(input: String) -> Cow<'a, str> {
+    let mut ret = String::new();
+    for (index, ch) in input.chars().enumerate() {
+        if index == 0 {
+            ret.push(ch.to_ascii_uppercase());
+        } else {
+            ret.push(ch.to_ascii_lowercase());
+        }
+    }
+    return Cow::Owned(ret);
+}
+
+fn to_lower_case(input: String) -> String {
+    input.to_lowercase()
+}
+
 
 fn main() {
-
     let lang_in = std::env::args().nth(1).expect("Missing lang").to_uppercase();
     let lang = lang_in.trim();
 
@@ -59,7 +86,6 @@ fn main() {
 
     let db_dbs = std::env::args().nth(4).expect("Missing DB SCHEMA AA|BB|CC");
 
-    let mut out_file = File::create(out_path).expect("create output file failed");
 
     let mut tables: Vec<Table> = vec!();
 
@@ -69,17 +95,26 @@ fn main() {
     }
 
     for table in tables {
-        let table_title = table_title_format!(lang, table.name);
+        let tname = table.name.get(2..).unwrap().to_string();
+
+        let table_title = table_title_format!(lang, tname.clone());
+        let filepath = table_filename_format!(lang, tname);
+
+        let mut out_file = File::create(format!("{}/{}", out_path, filepath)).expect("create output file failed");
+
 
         let _ = out_file.write(table_title.as_bytes());
+        let _ = out_file.write("\r\t".as_bytes());
 
         for field in table.fields {
-            let table_row = table_row_format!(lang, field.fname, field.ftype);
+            let table_row = table_row_format!(lang, field.fname, field.ftype.clone());
             let _ = out_file.write(table_row.as_bytes());
+            let _ = out_file.write("\r\t".as_bytes());
         }
         let _ = out_file.write(table_end_format!(lang).as_bytes());
+        let _ = out_file.write("\r\t".as_bytes());
+        let _ = out_file.flush();
     }
-    let _ = out_file.flush();
 }
 
 
