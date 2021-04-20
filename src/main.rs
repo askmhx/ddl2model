@@ -9,16 +9,16 @@ mod database;
 macro_rules! table_title_format {
     ($lang:expr,$args:expr) => {{
         match $lang {
-            "GO" => format!("type struct {} \x08",$args),
-            "JAVA" => format!("public class {} \x08",$args),
-            "RUST" => format!("pub struct {} \x08",$args),
-            _ => format!("pub struct {} \x08",$args),
+            "GO" => format!("type struct {}",$args),
+            "JAVA" => format!("public class {}",$args),
+            "RUST" => format!("pub struct {}",$args),
+            _ => format!("pub struct {}",$args),
         }
     }}
 }
 
-macro_rules! table_row_format {
-    ($lang:expr,$args0:expr,$args1:expr) => {{
+macro_rules! table_row_type {
+    ($lang:expr,$args0:expr) => {{
         match $lang {
             "GO" => format!("{} {}",$args0,$args1),
             "JAVA" => format!("{} {};",$args0,$args1),
@@ -27,6 +27,19 @@ macro_rules! table_row_format {
         }
     }}
 }
+
+macro_rules! table_row_format {
+    ($lang:expr,$args0:expr,$args1:expr) => {{
+        match $lang {
+            "GO" => format!("{} {}",$args0,table_row_type!($lang,$args1)),
+            "JAVA" => format!("{} {};",$args0,$args1),
+            "RUST" => format!("{}:{},",$args0,$args1),
+            _ => format!("{}:{},",$args0,$args1),
+        }
+    }}
+}
+
+
 
 macro_rules! table_end_format {
     ($lang:expr) => {{

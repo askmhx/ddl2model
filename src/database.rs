@@ -1,4 +1,4 @@
-use mysql::{Pool};
+use mysql::{Pool, Value};
 use mysql::prelude::{Queryable};
 
 pub struct Table {
@@ -9,13 +9,13 @@ pub struct Table {
 pub struct Field {
     pub fname: String,
     pub ftype: String,
-    pub fcollection: String,
-    pub fnull: String,
-    pub fkey: String,
-    pub fdefault: String,
-    pub fextra: String,
-    pub fprivilages: String,
-    pub fcomment: String,
+    pub fcollection: Value,
+    pub fnull: Value,
+    pub fkey: Value,
+    pub fdefault: Value,
+    pub fextra: Value,
+    pub fprivilages: Value,
+    pub fcomment: Value,
 }
 
 
@@ -37,6 +37,7 @@ pub fn gen_model_from_database(db_url: &str) -> Vec<Table> {
 
         let mut ret_fields: Vec<Field> = table_conn.query_map(format!("SHOW FULL COLUMNS FROM {};", table_name), |(fname, ftype, fcollection, fnull, fkey, fdefault, fextra, fprivilages, fcomment)| {
             println!("{:?},{:?},{:?},{:?},{:?},{:?},{:?},{:?},{:?}", fname, ftype, fcollection, fnull, fkey, fdefault, fextra, fprivilages, fcomment);
+
             Field { fname: fname, ftype: ftype, fcollection: fcollection, fnull: fnull, fkey: fkey, fdefault: fdefault, fextra: fextra, fprivilages: fprivilages, fcomment: fcomment }
         }).unwrap();
 
