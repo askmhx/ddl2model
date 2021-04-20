@@ -1,6 +1,6 @@
 use std::borrow::{BorrowMut, Cow};
 use std::fs::File;
-use std::io::Write;
+use std::io::{Write, LineWriter};
 
 use crate::database::Table;
 
@@ -75,27 +75,27 @@ fn to_lower_case(input: String) -> String {
     input.to_lowercase()
 }
 
-fn convert_type<'a>(lang:&str, input:String) -> &'a str {
-    let mut ret:&str;
-    if  input.starts_with("varchar")||input.starts_with("char"){
+fn convert_type<'a>(lang: &str, input: String) -> &'a str {
+    let mut ret: &str;
+    if input.starts_with("varchar") || input.starts_with("char") {
         ret = match lang {
-            "GO" =>   "string",
-            "RUST" =>   "String",
-            "JAVA" =>    "String",
-            _ =>   "String"
+            "GO" => "string",
+            "RUST" => "String",
+            "JAVA" => "String",
+            _ => "String"
         }
-    }else if input.starts_with("timestamp"){
+    } else if input.starts_with("timestamp") {
         ret = match lang {
             "GO" => "time",
             "RUST" => "string",
             "JAVA" => "string",
             _ => "string"
         }
-    }else if input.starts_with("int")  {
+    } else if input.starts_with("int") {
         ret = match lang {
             "GO" => "int",
             "RUST" => "int",
-            "JAVA" =>  "Int",
+            "JAVA" => "Int",
             _ => "string"
         }
     } else if input.starts_with("decimal") {
@@ -105,7 +105,7 @@ fn convert_type<'a>(lang:&str, input:String) -> &'a str {
             "JAVA" => "BigDecimal",
             _ => "string"
         };
-    }else{
+    } else {
         ret = input.clone().as_str()
     }
     ret
@@ -138,18 +138,18 @@ fn main() {
 
         let mut out_file = File::create(format!("{}/{}", out_path, filepath)).expect("create output file failed");
 
-
-        let _ = out_file.write(table_title.as_bytes());
-        let _ = out_file.write("\r\t".as_bytes());
+        out_file.write_all(new_line(table_title));
 
         for field in table.fields {
             let table_row = table_row_format!(lang, field.fname, field.ftype.clone());
-            let _ = out_file.write(table_row.as_bytes());
-            let _ = out_file.write("\r\t".as_bytes());
+            out_file.write_all(new_line(table_row));
         }
-        let _ = out_file.write(table_end_format!(lang).as_bytes());
-        let _ = out_file.write("\r\t".as_bytes());
+        out_file.write_all(new_line(table_end_format!(lang).to_string()));
         let _ = out_file.flush();
+    }
+
+    fn new_line(text: String) -> &[u8] {
+        format!("{}\n", text).as_bytes()
     }
 }
 
