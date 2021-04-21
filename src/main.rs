@@ -22,7 +22,7 @@ macro_rules! table_filename_format {
 macro_rules! table_title_format {
     ($lang:expr,$args:expr) => {{
         match $lang {
-            "GO" => format!("package model \ntype {} struct {{",to_camel_case($args,true)),
+            "GO" => format!("type {} struct {{",to_camel_case($args,true)),
             "PROTOBUF" => format!("message {} {{",to_camel_case($args,true)),
             "JAVA" => format!("public class {} {{",to_camel_case($args,true)),
             "RUST" => format!("pub struct {} {{",to_camel_case($args,true)),
@@ -147,6 +147,7 @@ fn main() {
             .read(true)
             .write(true)
             .create(true)
+            .append(true)
             .open(format!("{}/{}", out_path, table_filename_format!(lang, tname.clone()))).unwrap();
 
         let _ = out_file.write_all(new_line(table_title_format!(lang, tname)).as_bytes());
