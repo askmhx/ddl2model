@@ -78,7 +78,7 @@ fn to_lower_case(input: String) -> String {
     input.to_lowercase()
 }
 
-fn convert_type<'a>(lang: &str, input: String) -> String{
+fn convert_type<'a>(lang: &str, input: String) -> String {
     if input.starts_with("varchar") || input.starts_with("char") {
         let ret = match lang {
             "GO" => "string",
@@ -88,8 +88,8 @@ fn convert_type<'a>(lang: &str, input: String) -> String{
             _ => "String"
         };
         return ret.to_string();
-    } else if input.starts_with("time")||input.starts_with("date"){
-       let ret = match lang {
+    } else if input.starts_with("time") || input.starts_with("date") {
+        let ret = match lang {
             "GO" => "time.Time",
             "PROTOBUF" => "string",
             "RUST" => "time",
@@ -97,7 +97,7 @@ fn convert_type<'a>(lang: &str, input: String) -> String{
             _ => "string"
         };
         return ret.to_string();
-    } else if input.starts_with("int")||input.starts_with("bigint") {
+    } else if input.starts_with("int") || input.starts_with("bigint") {
         let ret = match lang {
             "GO" => "int",
             "PROTOBUF" => "int32",
@@ -140,24 +140,21 @@ fn main() {
     }
 
     for table in tables {
-        let tname = table.name.get(2..).unwrap().to_string();//remove the table name prefix，eg:T_XXX_XXX
-
-        let table_title = table_title_format!(lang, tname.clone());
-        let filepath = table_filename_format!(lang, tname);
-
         let mut out_file = OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
-            .open(format!("{}/{}", out_path, filepath)).unwrap();
+            .open(format!("{}/{}", out_path, table_filename_format!(lang, tname))).unwrap();
 
-        let _ =out_file.write_all(new_line(table_title).as_bytes());
+        let tname = table.name.get(2..).unwrap().to_string();//remove the table name prefix，eg:T_XXX_XXX
 
-        for (index,field) in table.fields.iter().enumerate()  {
+        let _ = out_file.write_all(new_line(table_title_format!(lang, tname.clone())).as_bytes());
+
+        for (index, field) in table.fields.iter().enumerate() {
             let table_row = table_row_format!(lang, field.fname.clone(), field.ftype.clone(),index+1);
-            let _ =out_file.write_all(new_line(table_row).as_bytes());
+            let _ = out_file.write_all(new_line(table_row).as_bytes());
         }
-        let _ =out_file.write_all(new_line(table_end_format!(lang).to_string()).as_bytes());
+        let _ = out_file.write_all(new_line(table_end_format!(lang).to_string()).as_bytes());
         let _ = out_file.flush();
     }
 
