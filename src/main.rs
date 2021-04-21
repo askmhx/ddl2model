@@ -68,47 +68,49 @@ fn upper_first_char<'a>(input: String) -> Cow<'a, str> {
             ret.push(ch.to_ascii_lowercase());
         }
     }
-    return Cow::Owned(ret);
+    Cow::Owned(ret)
 }
 
 fn to_lower_case(input: String) -> String {
     input.to_lowercase()
 }
 
-fn convert_type<'a>(lang: &str, input: String) -> &'a str {
-    let mut ret: &str;
+fn convert_type<'a>(lang: &str, input: String) -> String{
     if input.starts_with("varchar") || input.starts_with("char") {
-        ret = match lang {
+        let ret = match lang {
             "GO" => "string",
             "RUST" => "String",
             "JAVA" => "String",
             _ => "String"
-        }
+        };
+        return ret.to_string();
     } else if input.starts_with("timestamp") {
-        ret = match lang {
-            "GO" => "time",
-            "RUST" => "string",
-            "JAVA" => "string",
+       let ret = match lang {
+            "GO" => "time.Date",
+            "RUST" => "time",
+            "JAVA" => "DateTime",
             _ => "string"
-        }
+        };
+        return ret.to_string();
     } else if input.starts_with("int") {
-        ret = match lang {
+        let ret = match lang {
             "GO" => "int",
             "RUST" => "int",
             "JAVA" => "Int",
-            _ => "string"
-        }
+            _ => "int"
+        };
+        return ret.to_string();
     } else if input.starts_with("decimal") {
-        ret = match lang {
+        let ret = match lang {
             "GO" => "float64",
-            "RUST" => "i64",
+            "RUST" => "f64",
             "JAVA" => "BigDecimal",
             _ => "string"
         };
+        return ret.to_string();
     } else {
-        ret = input.clone().as_str()
+        return input.clone();
     }
-    ret
 }
 
 
@@ -131,7 +133,7 @@ fn main() {
     }
 
     for table in tables {
-        let tname = table.name.get(2..).unwrap().to_string();
+        let tname = table.name.get(2..).unwrap().to_string();//remove the table name prefix，eg:T_XXX_XXX
 
         let table_title = table_title_format!(lang, tname.clone());
         let filepath = table_filename_format!(lang, tname);
@@ -148,7 +150,7 @@ fn main() {
         let _ = out_file.flush();
     }
 
-    fn new_line(text: String) -> &[u8] {
+    fn new_line<'a>(text: String) -> &'a [u8] {
         format!("{}\n", text).as_bytes()
     }
 }
