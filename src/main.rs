@@ -140,22 +140,22 @@ fn main() {
     }
 
     for table in tables {
+
+        let tname = table.name.get(2..).unwrap().to_string();//remove the table name prefix，eg:T_XXX_XXX
+
         let mut out_file = OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
-            .open(format!("{}/{}", out_path, table_filename_format!(lang, tname))).unwrap();
+            .open(format!("{}/{}", out_path, table_filename_format!(lang, tname.clone()))).unwrap();
 
-        let tname = table.name.get(2..).unwrap().to_string();//remove the table name prefix，eg:T_XXX_XXX
-
-        let _ = out_file.write_all(new_line(table_title_format!(lang, tname.clone())).as_bytes());
+        let _ = out_file.write_all(new_line(table_title_format!(lang, tname)).as_bytes());
 
         for (index, field) in table.fields.iter().enumerate() {
             let table_row = table_row_format!(lang, field.fname.clone(), field.ftype.clone(),index+1);
             let _ = out_file.write_all(new_line(table_row).as_bytes());
         }
         let _ = out_file.write_all(new_line(table_end_format!(lang).to_string()).as_bytes());
-        let _ = out_file.flush();
     }
 
     fn new_line(text: String) -> String {
