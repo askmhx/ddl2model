@@ -1,15 +1,29 @@
 use std::borrow::{BorrowMut, Cow};
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::io::{Write};
 
 use crate::database::Table;
 
 mod database;
 
+macro_rules! table_filename_format {
+    ($lang:expr,$args:expr) => {{
+        match $lang {
+            "GO" => format!("{}.go","database"),
+            "PROTOBUF" => format!("{}.proto","protobuf"),
+            "JAVA" => format!("{}.java",to_camel_case($args,true)),
+            "RUST" => format!("{}.rs","database"),
+            _ => format!("{}.java",to_camel_case($args,true)),
+        }
+    }}
+}
+
+
 macro_rules! table_title_format {
     ($lang:expr,$args:expr) => {{
         match $lang {
-            "GO" => format!("type struct {} {{",to_camel_case($args,true)),
+            "GO" => format!("package model \ntype {} struct {{",to_camel_case($args,true)),
+            "PROTOBUF" => format!("message {} {{",to_camel_case($args,true)),
             "JAVA" => format!("public class {} {{",to_camel_case($args,true)),
             "RUST" => format!("pub struct {} {{",to_camel_case($args,true)),
             _ => format!("pub struct {} {{",$args),
@@ -17,25 +31,14 @@ macro_rules! table_title_format {
     }}
 }
 
-macro_rules! table_filename_format {
-    ($lang:expr,$args:expr) => {{
-        match $lang {
-            "GO" => format!("{}.go",to_camel_case($args,true)),
-            "JAVA" => format!("{}.java",to_camel_case($args,true)),
-            "RUST" => format!("{}.rs",to_lower_case($args)),
-            _ => format!("{}.java",to_camel_case($args,true)),
-        }
-    }}
-}
-
-
 macro_rules! table_row_format {
-    ($lang:expr,$args0:expr,$args1:expr) => {{
+    ($lang:expr,$aname:expr,$atype:expr,$idex:expr) => {{
         match $lang {
-            "GO" => format!("{} {}",to_camel_case($args1,true),convert_type($lang,$args1)),
-            "JAVA" => format!("{} {};",convert_type($lang,$args0),to_camel_case($args1,false)),
-            "RUST" => format!("{}:{},",to_lower_case($args0),convert_type($lang,$args1)),
-            _ => format!("{}:{},",$args0,$args1),
+            "GO" => format!("    {} {}",to_camel_case($aname,true),convert_type($lang,$atype)),
+            "PROTOBUF" => format!("    {} {} = {};",convert_type($lang,$atype),to_camel_case($aname,false),$idex),
+            "JAVA" => format!("    private {} {};",convert_type($lang,$atype),to_camel_case($aname,false)),
+            "RUST" => format!("    pub {}:{},",to_lower_case($aname),convert_type($lang,$atype)),
+            _ => format!("    pub {}:{},",$aname,$atype),
         }
     }}
 }
@@ -79,30 +82,34 @@ fn convert_type<'a>(lang: &str, input: String) -> String{
     if input.starts_with("varchar") || input.starts_with("char") {
         let ret = match lang {
             "GO" => "string",
+            "PROTOBUF" => "string",
             "RUST" => "String",
             "JAVA" => "String",
             _ => "String"
         };
         return ret.to_string();
-    } else if input.starts_with("timestamp") {
+    } else if input.starts_with("time")||input.starts_with("date"){
        let ret = match lang {
-            "GO" => "time.Date",
+            "GO" => "time.Time",
+            "PROTOBUF" => "string",
             "RUST" => "time",
-            "JAVA" => "DateTime",
+            "JAVA" => "Date",
             _ => "string"
         };
         return ret.to_string();
-    } else if input.starts_with("int") {
+    } else if input.starts_with("int")||input.starts_with("bigint") {
         let ret = match lang {
             "GO" => "int",
+            "PROTOBUF" => "int32",
             "RUST" => "int",
-            "JAVA" => "Int",
+            "JAVA" => "Integer",
             _ => "int"
         };
         return ret.to_string();
     } else if input.starts_with("decimal") {
         let ret = match lang {
             "GO" => "float64",
+            "PROTOBUF" => "double",
             "RUST" => "f64",
             "JAVA" => "BigDecimal",
             _ => "string"
@@ -138,20 +145,24 @@ fn main() {
         let table_title = table_title_format!(lang, tname.clone());
         let filepath = table_filename_format!(lang, tname);
 
-        let mut out_file = File::create(format!("{}/{}", out_path, filepath)).expect("create output file failed");
+        let mut out_file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(format!("{}/{}", out_path, filepath)).unwrap();
 
-        out_file.write_all(new_line(table_title));
+        let _ =out_file.write_all(new_line(table_title).as_bytes());
 
-        for field in table.fields {
-            let table_row = table_row_format!(lang, field.fname, field.ftype.clone());
-            out_file.write_all(new_line(table_row));
+        for (index,field) in table.fields.iter().enumerate()  {
+            let table_row = table_row_format!(lang, field.fname.clone(), field.ftype.clone(),index+1);
+            let _ =out_file.write_all(new_line(table_row).as_bytes());
         }
-        out_file.write_all(new_line(table_end_format!(lang).to_string()));
+        let _ =out_file.write_all(new_line(table_end_format!(lang).to_string()).as_bytes());
         let _ = out_file.flush();
     }
 
-    fn new_line<'a>(text: String) -> &'a [u8] {
-        format!("{}\n", text).as_bytes()
+    fn new_line(text: String) -> String {
+        format!("{}\n", text)
     }
 }
 
