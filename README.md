@@ -6,11 +6,12 @@
 
 参数说明：
 
-> 1. 语言类型GO/Rust/Java
-> 2. 输出目录
-> 3. 数据源
-> 4. 数据库名用#分隔
+> 1. 输出目录
+> 2. 数据源
+> 3. 数据库名用#分隔
+> 4. 语言类型GO/Rust/Java
+
 
 示例
 
-> java /Users/Crazz/Desktop root:password@localhost:3306 RKT_ACCOUNT#RKT_MERCHANT#RKT_TRADE
+>  /Users/Crazz/Desktop root:password@localhost:3306 RKT_ACCOUNT#RKT_MERCHANT#RKT_TRADE java

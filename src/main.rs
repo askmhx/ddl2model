@@ -122,14 +122,16 @@ fn convert_type<'a>(lang: &str, input: String) -> String {
 
 
 fn main() {
-    let lang_in = std::env::args().nth(1).expect("Missing lang").to_uppercase();
+
+
+    let out_path = std::env::args().nth(1).expect("Missing out file path");
+
+    let db_url = std::env::args().nth(2).expect("Missing DB URL root:password@host:port");
+
+    let db_dbs = std::env::args().nth(3).expect("Missing DB SCHEMA AA|BB|CC");
+
+    let lang_in = std::env::args().nth(4).expect("Missing lang").to_uppercase();
     let lang = lang_in.trim();
-
-    let out_path = std::env::args().nth(2).expect("Missing out file path");
-
-    let db_url = std::env::args().nth(3).expect("Missing DB URL root:password@host:port");
-
-    let db_dbs = std::env::args().nth(4).expect("Missing DB SCHEMA AA|BB|CC");
 
 
     let mut tables: Vec<Table> = vec!();
