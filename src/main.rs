@@ -134,7 +134,7 @@ fn main() {
 
     let mut tables: Vec<Table> = vec!();
 
-    for db in db_dbs.split("|") {
+    for db in db_dbs.split("#") {
         let mut ret = database::gen_model_from_database(format!("mysql://{}/{}", db_url, db).as_str());
         tables.append(ret.borrow_mut());
     }
