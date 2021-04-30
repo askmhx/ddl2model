@@ -4,6 +4,8 @@
 
 支持***Go/Rust/Java/Protobuf***
 
+编译之后生成一个可执行文件d2m
+
 参数说明：
 
 > 1. 输出目录
@@ -14,4 +16,4 @@
 
 示例
 
->  /Users/Crazz/Desktop root:password@localhost:3306 DB1#DB2#DB2 java
+> d2m /Users/Crazz/Desktop root:password@localhost:3306 DB1#DB2#DB2 java
