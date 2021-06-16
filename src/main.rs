@@ -79,7 +79,7 @@ fn to_lower_case(input: String) -> String {
 }
 
 fn convert_type<'a>(lang: &str, input: String) -> String {
-    if input.starts_with("varchar") || input.starts_with("char") {
+    if input.starts_with("varchar") || input.starts_with("char") || input.starts_with("text") {
         let ret = match lang {
             "GO" => "string",
             "PROTOBUF" => "string",
